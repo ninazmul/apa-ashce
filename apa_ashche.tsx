@@ -2562,6 +2562,114 @@ export default function App() {
     };
   }, [screen]);
 
+  // Canvas Touch Gesture Controls (swipe/tap zones for natural mobile play)
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartTime = 0;
+    let activeTouchId: number | null = null;
+    // Track which gesture-driven inputs are active so we release them properly
+    let gestureUp = false;
+    let gestureDown = false;
+    let gestureLeft = false;
+    let gestureRight = false;
+
+    const SWIPE_THRESHOLD = 30; // px minimum for a swipe
+    const TAP_MAX_DURATION = 200; // ms – quick tap = jump
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (screen !== 'playing') return;
+      // Only track the first finger on the canvas
+      if (activeTouchId !== null) return;
+      const touch = e.changedTouches[0];
+      activeTouchId = touch.identifier;
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+      touchStartTime = Date.now();
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (screen !== 'playing' || activeTouchId === null) return;
+      let touch: Touch | null = null;
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === activeTouchId) {
+          touch = e.changedTouches[i];
+          break;
+        }
+      }
+      if (!touch) return;
+
+      const dx = touch.clientX - touchStartX;
+      const dy = touch.clientY - touchStartY;
+
+      // Horizontal swipe detection (continuous while dragging)
+      if (dx < -SWIPE_THRESHOLD && !gestureLeft) {
+        inputRef.current.left = true;
+        gestureLeft = true;
+        if (gestureRight) { inputRef.current.right = false; gestureRight = false; }
+      } else if (dx > SWIPE_THRESHOLD && !gestureRight) {
+        inputRef.current.right = true;
+        gestureRight = true;
+        if (gestureLeft) { inputRef.current.left = false; gestureLeft = false; }
+      }
+
+      // Downward swipe = duck/fast-fall
+      if (dy > SWIPE_THRESHOLD && !gestureDown) {
+        inputRef.current.down = true;
+        gestureDown = true;
+      }
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      let found = false;
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === activeTouchId) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) return;
+
+      const elapsed = Date.now() - touchStartTime;
+
+      // Quick tap on canvas = jump (only if no significant swipe happened)
+      if (elapsed < TAP_MAX_DURATION && !gestureLeft && !gestureRight && !gestureDown) {
+        // Trigger a brief up press for edge-detected jump
+        inputRef.current.up = true;
+        gestureUp = true;
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            if (gestureUp) {
+              inputRef.current.up = false;
+              gestureUp = false;
+            }
+          });
+        });
+      }
+
+      // Release all gesture-driven inputs
+      if (gestureLeft) { inputRef.current.left = false; gestureLeft = false; }
+      if (gestureRight) { inputRef.current.right = false; gestureRight = false; }
+      if (gestureDown) { inputRef.current.down = false; gestureDown = false; }
+      activeTouchId = null;
+    };
+
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: true });
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: true });
+    canvas.addEventListener('touchend', handleTouchEnd, { passive: true });
+    canvas.addEventListener('touchcancel', handleTouchEnd, { passive: true });
+
+    return () => {
+      canvas.removeEventListener('touchstart', handleTouchStart);
+      canvas.removeEventListener('touchmove', handleTouchMove);
+      canvas.removeEventListener('touchend', handleTouchEnd);
+      canvas.removeEventListener('touchcancel', handleTouchEnd);
+    };
+  }, [screen]);
+
   // Helper to spawn particle bursts
   const spawnParticles = (g, worldX, yAboveGround, color, count = 12, speedScale = 1) => {
     for (let i = 0; i < count; i++) {
@@ -3463,8 +3571,8 @@ export default function App() {
           SCREEN 2: ACTIVE GAMEPLAY CANVAS & HUD
       ==================================================================== */}
       {(screen === 'playing' || screen === 'paused') && (
-        <div className="relative w-full h-full touch-none select-none">
-          <canvas ref={canvasRef} className="w-full h-full block" />
+        <div className="relative w-full h-full touch-manipulation select-none">
+          <canvas ref={canvasRef} className="w-full h-full block touch-manipulation" />
 
           {/* Top Arcade HUD */}
           <div className="absolute top-0 left-0 right-0 z-20 p-2.5 sm:p-4 flex flex-col gap-2 pointer-events-none">
@@ -3584,7 +3692,7 @@ export default function App() {
                 onPointerLeave={() => (inputRef.current.left = false)}
                 onPointerCancel={() => (inputRef.current.left = false)}
                 aria-label="Slow Down / Left"
-                className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-[#111827]/85 active:bg-[#2563EB] border-2 border-white/40 text-white flex flex-col items-center justify-center shadow-xl touch-none"
+                className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-[#111827]/85 active:bg-[#2563EB] border-2 border-white/40 text-white flex flex-col items-center justify-center shadow-xl touch-manipulation"
               >
                 <ChevronLeft className="w-6 h-6 sm:w-8 sm:h-8" />
                 <span className="text-[9px] sm:text-[10px] font-bold uppercase leading-none">SLOW</span>
@@ -3599,7 +3707,7 @@ export default function App() {
                 onPointerLeave={() => (inputRef.current.right = false)}
                 onPointerCancel={() => (inputRef.current.right = false)}
                 aria-label="Dash / Right"
-                className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-[#111827]/85 active:bg-[#2563EB] border-2 border-white/40 text-white flex flex-col items-center justify-center shadow-xl touch-none"
+                className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-[#111827]/85 active:bg-[#2563EB] border-2 border-white/40 text-white flex flex-col items-center justify-center shadow-xl touch-manipulation"
               >
                 <ChevronRight className="w-6 h-6 sm:w-8 sm:h-8" />
                 <span className="text-[9px] sm:text-[10px] font-bold uppercase leading-none">DASH</span>
@@ -3617,7 +3725,7 @@ export default function App() {
                 onPointerLeave={() => (inputRef.current.down = false)}
                 onPointerCancel={() => (inputRef.current.down = false)}
                 aria-label="Duck or Slide"
-                className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-[#2563EB]/90 active:bg-blue-400 border-2 border-[#111827] text-white flex flex-col items-center justify-center shadow-xl touch-none"
+                className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-[#2563EB]/90 active:bg-blue-400 border-2 border-[#111827] text-white flex flex-col items-center justify-center shadow-xl touch-manipulation"
               >
                 <ChevronDown className="w-6 h-6 sm:w-8 sm:h-8" />
                 <span className="text-[9px] sm:text-[10px] font-extrabold uppercase leading-none">DUCK</span>
@@ -3632,7 +3740,7 @@ export default function App() {
                 onPointerLeave={() => (inputRef.current.up = false)}
                 onPointerCancel={() => (inputRef.current.up = false)}
                 aria-label="Jump"
-                className="w-14 h-14 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl bg-[#FACC15]/95 active:bg-yellow-300 border-2 border-[#111827] text-[#111827] flex flex-col items-center justify-center shadow-xl touch-none"
+                className="w-14 h-14 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl bg-[#FACC15]/95 active:bg-yellow-300 border-2 border-[#111827] text-[#111827] flex flex-col items-center justify-center shadow-xl touch-manipulation"
               >
                 <ChevronUp className="w-7 h-7 sm:w-9 sm:h-9 stroke-[3]" />
                 <span className="text-[10px] sm:text-xs font-black uppercase leading-none">JUMP</span>
