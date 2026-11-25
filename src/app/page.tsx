@@ -13,5 +13,17 @@ const ApaAshcheGame = dynamic(() => import('../../apa_ashche'), {
 });
 
 export default function Page() {
-  return <ApaAshcheGame />;
+  return (
+    <main>
+      <h1 className="sr-only">
+        আপা আসছে! — Apa Ashche Bengali Political Satire Arcade Game
+      </h1>
+      <p className="sr-only">
+        বাংলা এবং ইংরেজি সমর্থিত পলিটিক্যাল স্যাটায়ার ব্রাউজার আর্কেড গেম।
+        Play a Bengali and English political satire side-scrolling arcade game
+        across fictional border checkpoints and monsoon river routes.
+      </p>
+      <ApaAshcheGame />
+    </main>
+  );
 }

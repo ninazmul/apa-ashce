@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#0b0f19"/>
+  <rect x="24" y="24" width="1152" height="582" rx="28" fill="#111827" stroke="#FACC15" stroke-width="8"/>
+  <circle cx="600" cy="205" r="92" fill="#006A4E"/>
+  <circle cx="600" cy="205" r="58" fill="#F42A41"/>
+  <path d="M120 445h960" stroke="#FACC15" stroke-width="6"/>
+  <text x="600" y="348" text-anchor="middle" fill="#FACC15" font-family="Arial, sans-serif" font-size="82" font-weight="900">আপা আসছে!</text>
+  <text x="600" y="412" text-anchor="middle" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="44" font-weight="700">APA ASHCHE</text>
+  <text x="600" y="492" text-anchor="middle" fill="#94A3B8" font-family="Arial, sans-serif" font-size="30">Bengali Political Satire Arcade Game</text>
+</svg>

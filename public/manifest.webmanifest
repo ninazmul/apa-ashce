@@ -1,0 +1,18 @@
+{
+  "name": "আপা আসছে! / Apa Ashche",
+  "short_name": "আপা আসছে!",
+  "description": "Bengali and English political satire arcade browser game.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0f19",
+  "theme_color": "#FACC15",
+  "lang": "bn-BD",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
