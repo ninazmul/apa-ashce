@@ -1,5 +1,6 @@
 // @ts-nocheck
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import Image from 'next/image';
 import {
   Play,
   Pause,
@@ -2164,6 +2165,27 @@ export default function App() {
   const [screen, setScreen] = useState('menu'); // 'menu' | 'playing' | 'paused' | 'victory' | 'gameover'
   const [activeModal, setActiveModal] = useState(null); // null | 'howto' | 'settings' | 'about'
   const [confirmReset, setConfirmReset] = useState(false);
+  const orientationLockRequestedRef = useRef(false);
+
+  const lockToLandscape = useCallback(() => {
+    if (!window.matchMedia('(max-width: 767px)').matches) return;
+
+    const orientation = window.screen.orientation;
+    if (typeof orientation?.lock !== 'function') return;
+
+    orientationLockRequestedRef.current = true;
+    orientation.lock('landscape').catch((error) => {
+      orientationLockRequestedRef.current = false;
+      console.warn('Unable to lock the device to landscape orientation.', error);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (screen === 'playing' || screen === 'paused' || !orientationLockRequestedRef.current) return;
+
+    window.screen.orientation.unlock();
+    orientationLockRequestedRef.current = false;
+  }, [screen]);
 
   // HUD State (throttled updates from game loop to avoid React overhead)
   const [hudState, setHudState] = useState({
@@ -2282,6 +2304,7 @@ export default function App() {
   // Initialize / Start a Level Run
   const startNewRun = useCallback(
     (levelId = selectedLevelId) => {
+      lockToLandscape();
       audio.unlock();
       if (saveData.musicEnabled) {
         audio.startMusic();
@@ -2522,7 +2545,7 @@ export default function App() {
       setActiveModal(null);
       setScreen('playing');
     },
-    [selectedLevelId, saveData.musicEnabled, triggerDialogue]
+    [selectedLevelId, saveData.musicEnabled, triggerDialogue, lockToLandscape]
   );
 
   // Keyboard Listeners
@@ -3354,11 +3377,7 @@ export default function App() {
   const progressPct = Math.min(100, Math.round((hudState.distance / hudState.targetDistance) * 100));
 
   return (
-    <div
-      className={`relative w-full h-screen h-[100dvh] overflow-hidden bg-[#111827] text-white select-none font-sans ${
-        screen === 'playing' || screen === 'paused' ? 'mobile-game-landscape' : ''
-      }`}
-    >
+    <div className="relative w-full h-screen h-[100dvh] overflow-hidden bg-[#111827] text-white select-none font-sans">
       {/* Load Google Font for crisp Bengali Unicode & Arcade Display */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@600;700&family=Rubik:wght@700;800;900&display=swap');
@@ -3422,6 +3441,14 @@ export default function App() {
               <span className="hidden sm:inline-flex items-center gap-1.5 bg-[#EF4444] text-white text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full border-2 border-[#111827] shadow mb-2">
                 <Flame className="w-3.5 h-3.5 text-[#FACC15]" /> Bangladesh Satire Arcade
               </span>
+
+              <Image
+                src="/apa-ashce-brand.png"
+                alt="আপা আসছে! logo"
+                width={72}
+                height={72}
+                className="mb-1 h-16 w-16 sm:h-20 sm:w-20 rounded-2xl border-2 border-[#FACC15] object-contain shadow-lg"
+              />
 
               <h1
                 className="font-arcade text-3xl sm:text-6xl font-black tracking-tight text-[#FACC15] drop-shadow-[0_4px_0_#111827]"
