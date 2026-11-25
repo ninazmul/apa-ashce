@@ -3246,7 +3246,7 @@ export default function App() {
   const progressPct = Math.min(100, Math.round((hudState.distance / hudState.targetDistance) * 100));
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-[#111827] text-white select-none font-sans">
+    <div className="relative w-full h-screen h-[100dvh] overflow-hidden bg-[#111827] text-white select-none font-sans">
       {/* Load Google Font for crisp Bengali Unicode & Arcade Display */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@600;700&family=Rubik:wght@700;800;900&display=swap');
@@ -3569,9 +3569,12 @@ export default function App() {
           </div>
 
           {/* Mobile & Touch Controls Overlay */}
-          <div className="absolute bottom-4 left-4 right-4 z-20 flex items-end justify-between pointer-events-none">
+          <div
+            className="absolute bottom-2.5 sm:bottom-4 left-2.5 right-2.5 sm:left-4 sm:right-4 z-20 flex items-end justify-between gap-2 pointer-events-none"
+            style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+          >
             {/* Left / Right Speed Steering */}
-            <div className="flex items-center gap-3 pointer-events-auto">
+            <div className="flex items-center gap-1.5 sm:gap-3 pointer-events-auto shrink-0">
               <button
                 onPointerDown={(e) => {
                   e.preventDefault();
@@ -3581,10 +3584,10 @@ export default function App() {
                 onPointerLeave={() => (inputRef.current.left = false)}
                 onPointerCancel={() => (inputRef.current.left = false)}
                 aria-label="Slow Down / Left"
-                className="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl bg-[#111827]/80 active:bg-[#2563EB] border-3 border-white/40 text-white flex flex-col items-center justify-center shadow-xl touch-none"
+                className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-[#111827]/85 active:bg-[#2563EB] border-2 border-white/40 text-white flex flex-col items-center justify-center shadow-xl touch-none"
               >
-                <ChevronLeft className="w-8 h-8" />
-                <span className="text-[10px] font-bold uppercase">SLOW</span>
+                <ChevronLeft className="w-6 h-6 sm:w-8 sm:h-8" />
+                <span className="text-[9px] sm:text-[10px] font-bold uppercase leading-none">SLOW</span>
               </button>
 
               <button
@@ -3596,15 +3599,15 @@ export default function App() {
                 onPointerLeave={() => (inputRef.current.right = false)}
                 onPointerCancel={() => (inputRef.current.right = false)}
                 aria-label="Dash / Right"
-                className="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl bg-[#111827]/80 active:bg-[#2563EB] border-3 border-white/40 text-white flex flex-col items-center justify-center shadow-xl touch-none"
+                className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-[#111827]/85 active:bg-[#2563EB] border-2 border-white/40 text-white flex flex-col items-center justify-center shadow-xl touch-none"
               >
-                <ChevronRight className="w-8 h-8" />
-                <span className="text-[10px] font-bold uppercase">DASH</span>
+                <ChevronRight className="w-6 h-6 sm:w-8 sm:h-8" />
+                <span className="text-[9px] sm:text-[10px] font-bold uppercase leading-none">DASH</span>
               </button>
             </div>
 
             {/* Duck / Slide & Jump Action Buttons */}
-            <div className="flex items-center gap-3 pointer-events-auto">
+            <div className="flex items-center gap-1.5 sm:gap-3 pointer-events-auto shrink-0">
               <button
                 onPointerDown={(e) => {
                   e.preventDefault();
@@ -3614,10 +3617,10 @@ export default function App() {
                 onPointerLeave={() => (inputRef.current.down = false)}
                 onPointerCancel={() => (inputRef.current.down = false)}
                 aria-label="Duck or Slide"
-                className="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl bg-[#2563EB]/90 active:bg-blue-400 border-3 border-[#111827] text-white flex flex-col items-center justify-center shadow-xl touch-none"
+                className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-[#2563EB]/90 active:bg-blue-400 border-2 border-[#111827] text-white flex flex-col items-center justify-center shadow-xl touch-none"
               >
-                <ChevronDown className="w-8 h-8" />
-                <span className="text-[10px] font-extrabold uppercase">DUCK</span>
+                <ChevronDown className="w-6 h-6 sm:w-8 sm:h-8" />
+                <span className="text-[9px] sm:text-[10px] font-extrabold uppercase leading-none">DUCK</span>
               </button>
 
               <button
@@ -3629,10 +3632,10 @@ export default function App() {
                 onPointerLeave={() => (inputRef.current.up = false)}
                 onPointerCancel={() => (inputRef.current.up = false)}
                 aria-label="Jump"
-                className="w-20 h-20 sm:w-22 sm:h-22 rounded-2xl bg-[#FACC15]/95 active:bg-yellow-300 border-3 border-[#111827] text-[#111827] flex flex-col items-center justify-center shadow-xl touch-none"
+                className="w-14 h-14 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl bg-[#FACC15]/95 active:bg-yellow-300 border-2 border-[#111827] text-[#111827] flex flex-col items-center justify-center shadow-xl touch-none"
               >
-                <ChevronUp className="w-9 h-9 stroke-[3]" />
-                <span className="text-xs font-black uppercase">JUMP</span>
+                <ChevronUp className="w-7 h-7 sm:w-9 sm:h-9 stroke-[3]" />
+                <span className="text-[10px] sm:text-xs font-black uppercase leading-none">JUMP</span>
               </button>
             </div>
           </div>
