@@ -3377,7 +3377,7 @@ export default function App() {
   const progressPct = Math.min(100, Math.round((hudState.distance / hudState.targetDistance) * 100));
 
   return (
-    <div className="relative w-full h-screen h-[100dvh] overflow-hidden bg-[#111827] text-white select-none font-sans">
+    <div className="relative w-full h-[100dvh] overflow-hidden bg-[#111827] text-white select-none font-sans">
       {/* Load Google Font for crisp Bengali Unicode & Arcade Display */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@600;700&family=Rubik:wght@700;800;900&display=swap');
