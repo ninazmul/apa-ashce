@@ -27,6 +27,7 @@ import {
   MapPin,
   Lock,
   Unlock,
+  Download,
 } from "lucide-react";
 
 // ============================================================================
@@ -2332,6 +2333,133 @@ function MenuBackdropCanvas() {
   );
 }
 
+function PwaInstallToast() {
+  const deferredPromptRef = useRef(null);
+  const dismissedRef = useRef(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [canPromptInstall, setCanPromptInstall] = useState(false);
+
+  useEffect(() => {
+    const isStandalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      navigator.standalone === true;
+    if (isStandalone) return;
+
+    const showTimer = window.setTimeout(() => {
+      if (!dismissedRef.current) setIsVisible(true);
+    }, 900);
+
+    const handleBeforeInstallPrompt = (event) => {
+      event.preventDefault();
+      deferredPromptRef.current = event;
+      setCanPromptInstall(true);
+      if (!dismissedRef.current) setIsVisible(true);
+    };
+
+    const handleAppInstalled = () => {
+      dismissedRef.current = true;
+      deferredPromptRef.current = null;
+      setCanPromptInstall(false);
+      setIsVisible(false);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("appinstalled", handleAppInstalled);
+
+    return () => {
+      window.clearTimeout(showTimer);
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt,
+      );
+      window.removeEventListener("appinstalled", handleAppInstalled);
+    };
+  }, []);
+
+  const dismiss = () => {
+    dismissedRef.current = true;
+    setIsVisible(false);
+  };
+
+  const handleInstallClick = async () => {
+    if (showInstructions) {
+      dismiss();
+      return;
+    }
+
+    const installPrompt = deferredPromptRef.current;
+    if (!installPrompt) {
+      setShowInstructions(true);
+      return;
+    }
+
+    deferredPromptRef.current = null;
+    setCanPromptInstall(false);
+    try {
+      await installPrompt.prompt();
+      const { outcome } = await installPrompt.userChoice;
+      if (outcome === "accepted") {
+        dismiss();
+      } else {
+        setShowInstructions(true);
+      }
+    } catch (error) {
+      console.error("Unable to open the PWA install prompt.", error);
+      setShowInstructions(true);
+    }
+  };
+
+  if (!isVisible) return null;
+
+  const isAppleMobile =
+    /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="fixed bottom-20 sm:bottom-5 left-4 right-4 sm:left-auto sm:right-5 z-40 sm:w-[min(22rem,calc(100vw-2rem))] rounded-2xl border-2 border-[#FACC15] bg-[#111827]/95 p-4 text-white shadow-2xl backdrop-blur"
+    >
+      <div className="flex items-start gap-3">
+        <div className="rounded-xl bg-[#FACC15] p-2 text-[#111827]">
+          <Download className="h-5 w-5" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="font-bold text-[#FACC15]">Install Apa Ashche</div>
+          <p className="mt-1 text-sm text-slate-200">
+            {showInstructions
+              ? isAppleMobile
+                ? "Tap Share, then choose “Add to Home Screen.”"
+                : "Open your browser menu and choose “Install app” or “Add to Home Screen.”"
+              : "Add the game to your home screen for quick access."}
+          </p>
+          <button
+            type="button"
+            onClick={handleInstallClick}
+            className="mt-3 rounded-lg bg-[#FACC15] px-3 py-1.5 text-xs font-black text-[#111827] transition hover:bg-yellow-300"
+          >
+            {showInstructions
+              ? "GOT IT"
+              : canPromptInstall
+                ? "INSTALL"
+                : "HOW TO INSTALL"}
+          </button>
+        </div>
+        <button
+          type="button"
+          onClick={dismiss}
+          aria-label="Dismiss install prompt"
+          className="-mr-1 -mt-1 rounded-lg p-1 text-slate-300 hover:bg-white/10 hover:text-white"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ============================================================================
 // 7. MAIN APPLICATION & GAME CONTROLLER
 // ============================================================================
@@ -3981,6 +4109,8 @@ export default function App() {
               entertainment.
             </p>
           </div>
+
+          <PwaInstallToast />
         </div>
       )}
 
@@ -4118,7 +4248,7 @@ export default function App() {
 
           {/* Mobile & Touch Controls Overlay */}
           <div
-            className="absolute bottom-2.5 sm:bottom-4 left-2.5 right-2.5 sm:left-4 sm:right-4 z-20 flex items-end justify-between gap-2 pointer-events-none"
+            className="absolute bottom-12 sm:bottom-4 left-2.5 right-2.5 sm:left-4 sm:right-4 z-20 flex items-end justify-between gap-2 pointer-events-none"
             style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
           >
             {/* Left / Right Speed Steering */}
